@@ -3,6 +3,10 @@ package com.udacity.gradle.builditbigger;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
+import android.support.test.espresso.IdlingResource;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -15,11 +19,15 @@ import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
 import com.josemgu91.jokescreen.JokeActivity;
 import com.udacity.gradle.builditbigger.backend.myApi.MyApi;
+import com.udacity.gradle.builditbigger.test.SimpleIdlingResource;
 
 import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    @Nullable
+    private SimpleIdlingResource simpleIdlingResource;
 
     private RemoteJokeAsyncTask remoteJokeAsyncTask;
 
@@ -27,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        simpleIdlingResource = (SimpleIdlingResource) getIdlingResource();
+        simpleIdlingResource.setIdleState(false);
     }
 
 
@@ -60,6 +70,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getIdlingResource() {
+        if (simpleIdlingResource == null) {
+            simpleIdlingResource = new SimpleIdlingResource();
+        }
+        return simpleIdlingResource;
+    }
+
     public void tellJoke(View view) {
         remoteJokeAsyncTask = new RemoteJokeAsyncTask();
         remoteJokeAsyncTask.execute();
@@ -91,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String joke) {
+            simpleIdlingResource.setIdleState(true);
             JokeActivity.start(MainActivity.this, joke);
         }
     }
