@@ -11,7 +11,6 @@ import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -24,7 +23,7 @@ import com.udacity.gradle.builditbigger.test.SimpleIdlingResource;
 import java.io.IOException;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainActivityFragment.MainActivityFragmentInterface {
 
     @Nullable
     private SimpleIdlingResource simpleIdlingResource;
@@ -37,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         simpleIdlingResource = (SimpleIdlingResource) getIdlingResource();
         simpleIdlingResource.setIdleState(false);
+        ((MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment))
+                .setMainActivityFragmentInterface(this);
+
     }
 
 
@@ -79,7 +81,8 @@ public class MainActivity extends AppCompatActivity {
         return simpleIdlingResource;
     }
 
-    public void tellJoke(View view) {
+    @Override
+    public void onShowJokeButtonClick() {
         remoteJokeAsyncTask = new RemoteJokeAsyncTask();
         remoteJokeAsyncTask.execute();
     }

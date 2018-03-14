@@ -12,12 +12,33 @@ import android.view.ViewGroup;
  */
 public class MainActivityFragment extends Fragment {
 
+    private MainActivityFragmentInterface mainActivityFragmentInterface;
+
+    public void setMainActivityFragmentInterface(MainActivityFragmentInterface mainActivityFragmentInterface) {
+        this.mainActivityFragmentInterface = mainActivityFragmentInterface;
+    }
+
     public MainActivityFragment() {
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        final View root = inflater.inflate(R.layout.fragment_main, container, false);
+        root.findViewById(R.id.buttonTellJoke).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mainActivityFragmentInterface != null) {
+                    mainActivityFragmentInterface.onShowJokeButtonClick();
+                }
+            }
+        });
+        return root;
+    }
+
+    public interface MainActivityFragmentInterface {
+
+        void onShowJokeButtonClick();
+
     }
 }
