@@ -45,18 +45,30 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class RemoteJokeAsyncTaskTest {
 
-    private IdlingResource idlingResource;
+    private IdlingResource fragmentIdlingResource;
+    private IdlingResource activityIdlingResource;
 
     @Rule
     public IntentsTestRule<MainActivity> mainActivityTestRule = new IntentsTestRule<>(MainActivity.class);
-
 
     @Test
     public void clickRecipeStepElementOpensStepDetail() {
         Espresso.onView(ViewMatchers.withId(R.id.buttonTellJoke))
                 .perform(ViewActions.click());
-        idlingResource = mainActivityTestRule.getActivity().getIdlingResource();
-        IdlingRegistry.getInstance().register(idlingResource);
+        fragmentIdlingResource = ((MainActivityFragment) mainActivityTestRule
+                .getActivity()
+                .getSupportFragmentManager()
+                .findFragmentById(R.id.fragment)).getIdlingResource();
+        IdlingRegistry.getInstance().register(fragmentIdlingResource);
+        Espresso.onView(
+                Matchers.allOf(
+                        ViewMatchers.withContentDescription("Interstitial close button"),
+                        ViewMatchers.isDisplayed()
+                )
+        ).perform(ViewActions.click());
+        IdlingRegistry.getInstance().unregister(fragmentIdlingResource);
+        activityIdlingResource = mainActivityTestRule.getActivity().getIdlingResource();
+        IdlingRegistry.getInstance().register(activityIdlingResource);
         Intents.intended(
                 Matchers.allOf(
                         IntentMatchers.hasComponent(JokeActivity.class.getName()),
@@ -71,8 +83,8 @@ public class RemoteJokeAsyncTaskTest {
                         )
                 )
         );
-        if (idlingResource != null) {
-            IdlingRegistry.getInstance().unregister(idlingResource);
+        if (activityIdlingResource != null) {
+            IdlingRegistry.getInstance().unregister(activityIdlingResource);
         }
     }
 

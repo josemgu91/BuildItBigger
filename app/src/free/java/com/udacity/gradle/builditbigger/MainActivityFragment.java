@@ -1,6 +1,10 @@
 package com.udacity.gradle.builditbigger;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
+import android.support.test.espresso.IdlingResource;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +14,7 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
+import com.udacity.gradle.builditbigger.test.SimpleIdlingResource;
 
 
 /**
@@ -25,7 +30,26 @@ public class MainActivityFragment extends Fragment {
         this.mainActivityFragmentInterface = mainActivityFragmentInterface;
     }
 
+    @Nullable
+    private SimpleIdlingResource simpleIdlingResource;
+
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getIdlingResource() {
+        if (simpleIdlingResource == null) {
+            simpleIdlingResource = new SimpleIdlingResource();
+        }
+        return simpleIdlingResource;
+    }
+
     public MainActivityFragment() {
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        simpleIdlingResource = (SimpleIdlingResource) getIdlingResource();
+        simpleIdlingResource.setIdleState(false);
     }
 
     @Override
@@ -54,6 +78,12 @@ public class MainActivityFragment extends Fragment {
                     }
 
                     @Override
+                    public void onAdOpened() {
+                        super.onAdOpened();
+                        simpleIdlingResource.setIdleState(true);
+                    }
+
+                    @Override
                     public void onAdClosed() {
                         super.onAdClosed();
                         if (mainActivityFragmentInterface != null) {
@@ -64,6 +94,7 @@ public class MainActivityFragment extends Fragment {
                     @Override
                     public void onAdFailedToLoad(int i) {
                         super.onAdFailedToLoad(i);
+                        simpleIdlingResource.setIdleState(true);
                         if (mainActivityFragmentInterface != null) {
                             mainActivityFragmentInterface.onShowJokeButtonClick();
                         }
