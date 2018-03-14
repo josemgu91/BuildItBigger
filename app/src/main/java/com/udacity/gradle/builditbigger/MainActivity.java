@@ -11,6 +11,7 @@ import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -30,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     private RemoteJokeAsyncTask remoteJokeAsyncTask;
 
+    private View progress;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         simpleIdlingResource.setIdleState(false);
         ((MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment))
                 .setMainActivityFragmentInterface(this);
-
+        progress = findViewById(R.id.progress);
     }
 
 
@@ -87,8 +90,21 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         remoteJokeAsyncTask.execute();
     }
 
+    private void showProgress() {
+        progress.setVisibility(View.VISIBLE);
+    }
+
+    private void dismissProgress() {
+        progress.setVisibility(View.GONE);
+    }
+
     private class RemoteJokeAsyncTask extends AsyncTask<Pair<Context, String>, Void, String> {
         private MyApi myApiService = null;
+
+        @Override
+        protected void onPreExecute() {
+            showProgress();
+        }
 
         @Override
         protected String doInBackground(Pair<Context, String>... params) {
@@ -113,8 +129,15 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
         @Override
         protected void onPostExecute(String joke) {
+            dismissProgress();
             simpleIdlingResource.setIdleState(true);
             JokeActivity.start(MainActivity.this, joke);
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            dismissProgress();
         }
     }
 
