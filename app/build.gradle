@@ -14,6 +14,10 @@ android {
     compileSdkVersion 26
     buildToolsVersion "26.0.3"
 
+    lintOptions {
+        abortOnError false
+    }
+
     defaultConfig {
         applicationId "com.udacity.gradle.builditbigger"
         minSdkVersion 16
@@ -48,6 +52,5 @@ dependencies {
 
     testImplementation 'junit:junit:4.12'
 
-    implementation project(':jokeTeller')
     implementation project(':jokeScreen')
 }
