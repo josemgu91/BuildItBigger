@@ -13,6 +13,24 @@ buildscript {
     }
 }
 
+
+task startLocalTestServer(dependsOn: ":backend:appengineStart")
+task executeAndroidInstrumentedTests {
+    dependsOn ":app:connectedFreeDebugAndroidTest", ":app:connectedPaidDebugAndroidTest"
+    mustRunAfter startLocalTestServer
+}
+task stopLocalTestServer {
+    dependsOn ":backend:appengineStop"
+    mustRunAfter executeAndroidInstrumentedTests
+}
+task deployMockServerAndRunTests(
+        dependsOn: [
+                "startLocalTestServer",
+                "executeAndroidInstrumentedTests",
+                "stopLocalTestServer"
+        ]
+)
+
 allprojects {
     repositories {
         jcenter()
