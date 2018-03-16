@@ -51,7 +51,7 @@ public class RemoteJokeAsyncTaskTest {
     public IntentsTestRule<MainActivity> mainActivityTestRule = new IntentsTestRule<>(MainActivity.class);
 
     @Test
-    public void clickRecipeStepElementOpensStepDetail() {
+    public void clickOnTellJokeButtonShowsJoke() {
         Espresso.onView(ViewMatchers.withId(R.id.buttonTellJoke))
                 .perform(ViewActions.click());
         idlingResource = mainActivityTestRule.getActivity().getIdlingResource();
