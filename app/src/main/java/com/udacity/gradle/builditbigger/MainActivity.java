@@ -1,17 +1,16 @@
 package com.udacity.gradle.builditbigger;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.support.test.espresso.IdlingResource;
-import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -98,8 +97,12 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         progress.setVisibility(View.GONE);
     }
 
-    private class RemoteJokeAsyncTask extends AsyncTask<Pair<Context, String>, Void, String> {
+    private class RemoteJokeAsyncTask extends AsyncTask<Void, Void, Bundle> {
         private MyApi myApiService = null;
+
+        private static final String KEY_JOKE = "joke";
+        private static final String KEY_HAS_ERROR = "has_error";
+        private static final String KEY_ERROR_MESSAGE = "error_message";
 
         @Override
         protected void onPreExecute() {
@@ -107,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         }
 
         @Override
-        protected String doInBackground(Pair<Context, String>... params) {
+        protected Bundle doInBackground(Void... params) {
             if (myApiService == null) {
                 MyApi.Builder builder = new MyApi.Builder(AndroidHttp.newCompatibleTransport(),
                         new AndroidJsonFactory(), null)
@@ -120,18 +123,29 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
                         });
                 myApiService = builder.build();
             }
+            final Bundle response = new Bundle();
             try {
-                return myApiService.sayJoke().execute().getData();
+                final String serverResponse = myApiService.sayJoke().execute().getData();
+                response.putString(KEY_JOKE, serverResponse);
+                response.putBoolean(KEY_HAS_ERROR, false);
             } catch (IOException e) {
-                return e.getMessage();
+                e.printStackTrace();
+                final String exceptionMessage = e.getMessage();
+                response.putBoolean(KEY_HAS_ERROR, true);
+                response.putString(KEY_ERROR_MESSAGE, exceptionMessage);
             }
+            return response;
         }
 
         @Override
-        protected void onPostExecute(String joke) {
+        protected void onPostExecute(Bundle response) {
             dismissProgress();
             simpleIdlingResource.setIdleState(true);
-            JokeActivity.start(MainActivity.this, joke);
+            if (response.getBoolean(KEY_HAS_ERROR)) {
+                Toast.makeText(MainActivity.this, R.string.joke_server_error, Toast.LENGTH_SHORT).show();
+            } else {
+                JokeActivity.start(MainActivity.this, response.getString(KEY_JOKE));
+            }
         }
 
         @Override
